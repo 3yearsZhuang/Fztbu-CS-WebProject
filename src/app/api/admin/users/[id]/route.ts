@@ -64,9 +64,11 @@ export async function PUT(
     if (proxy.clearAuth) clearAuthCookies(res);
     return res;
   }
-  const payload = proxy.body as { user?: BackendUser; roles?: string[] };
+  // Backend returns AdminUserOut directly; accept both direct and wrapped payloads.
+  const payload = proxy.body as BackendUser & { user?: BackendUser; roles?: string[] };
+  const backendUser = payload.user ?? payload;
   const res = NextResponse.json({
-    user: payload.user ? toSafeUserFromBackend(payload.user, payload.roles) : null,
+    user: backendUser?.id != null ? toSafeUserFromBackend(backendUser, payload.roles) : null,
   });
   if (proxy.authPair) setAuthCookies(res, proxy.authPair);
   return res;
